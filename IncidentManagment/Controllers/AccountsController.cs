@@ -62,7 +62,11 @@ public class AccountsController : Controller
     public async Task<IActionResult> GetAccountById([FromRoute]string id)
     {
         var account = await _accountService.GetAccountByIdAsync(id);
+
+        _logger.LogInformation("Queried account with an id {id}", id);
+
         var accountDTO = _mapper.Map<AccountDTO>(account);
+        
         return Ok(accountDTO);
     }
     
@@ -86,11 +90,16 @@ public class AccountsController : Controller
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddAccount([FromBody]AccountDTO account, [FromServices] IDiagnosticContext diagnosticContext)
+    public async Task<IActionResult> AddAccount([FromBody]AccountDTO account, [FromServices] IDiagnosticContext diagContext)
     {
         var addedAccount = await _accountService.AddAccountAsync(_mapper.Map<Account>(account));
+
+        _logger.LogInformation("Created an account with id {id}", account.Name);
+
         var addedAccountDTO = _mapper.Map<AccountDTO>(addedAccount);
-        diagnosticContext.Set("accountId", addedAccount.Name);
+        
+        diagContext.Set("accountId", addedAccount.Name);
+        
         return Created(HttpContext.Request.GetDisplayUrl(), addedAccountDTO);
     }
 
@@ -106,10 +115,14 @@ public class AccountsController : Controller
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<IActionResult> Delete([FromRoute] string id)
+    public async Task<IActionResult> Delete([FromRoute] string id, [FromServices] IDiagnosticContext diagContext)
     {
+        diagContext.Set("accountId", id);
+
         await _accountService.DeleteIncidentAsync(id);
 
+        _logger.LogInformation("Deleted an account with id {id}", id);
+        
         return NoContent();
     }
 }

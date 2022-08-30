@@ -6,6 +6,7 @@ using IncidentManagment.Logic.Services;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using IncidentManagment.Filters;
+using Serilog;
 
 namespace IncidentManagment.Controllers;
 
@@ -56,7 +57,11 @@ public class ContactsController : Controller
     public async Task<IActionResult> GetContactById([FromRoute]string id)
     {
         var contact = await _contactService.GetContactByIdAsync(id);
+        
+        _logger.LogInformation("Queried contact with an id {id}", id);
+
         var contactDTO = _mapper.Map<ContactDTO>(contact);
+        
         return Ok(contactDTO);
     }
     
@@ -79,10 +84,16 @@ public class ContactsController : Controller
     [HttpPost("")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddContact([FromBody] ContactDTO contactDTO)
+    public async Task<IActionResult> AddContact([FromBody] ContactDTO contactDTO, [FromServices] IDiagnosticContext diagContext)
     {
         var addedContact = await _contactService.AddContactAsync(_mapper.Map<Contact>(contactDTO));
+                
+        _logger.LogInformation("Created a contact with id {id}", addedContact.Email);
+
         var addedContactDTO = _mapper.Map<ContactDTO>(addedContact);
+
+        diagContext.Set("contactId", addedContact.Email);
+
         return Created(HttpContext.Request.GetEncodedUrl(), addedContactDTO);
     }
 
@@ -98,9 +109,13 @@ public class ContactsController : Controller
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<IActionResult> Delete([FromRoute] string id)
+    public async Task<IActionResult> Delete([FromRoute] string id, [FromServices] IDiagnosticContext diagContext)
     {
+        diagContext.Set("contactId", id);
+        
         await _contactService.DeleteIncidentAsync(id);
+
+        _logger.LogInformation("Deleted a contact with id {id}", id);
 
         return NoContent();
     }
