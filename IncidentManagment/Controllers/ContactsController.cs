@@ -85,4 +85,23 @@ public class ContactsController : Controller
         var addedContactDTO = _mapper.Map<ContactDTO>(addedContact);
         return Created(HttpContext.Request.GetEncodedUrl(), addedContactDTO);
     }
+
+    /// <summary>
+    /// Deletes a contact with a given Id
+    /// </summary>
+    /// <param name="id">Id of an contact to delete</param>
+    /// <returns></returns>
+    /// <response code="204">Deleted an contact, nothing to return</response>
+    /// <response code="404">If the contact with the given Id could not have been found</response>
+    /// <response code="422">If the contact with the given Id still has accounts</response>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> Delete([FromRoute] string id)
+    {
+        await _contactService.DeleteIncidentAsync(id);
+
+        return NoContent();
+    }
 }

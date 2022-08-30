@@ -105,9 +105,20 @@ public class IncidentsController : Controller
         return Ok(_mapper.Map<IncidentDTO>(incident));
     }
 
-    [HttpDelete("")]
-    public async Task<IActionResult> Delete(int incidentId)
+    /// <summary>
+    /// Deletes an incident with a given Id
+    /// </summary>
+    /// <param name="incidentId">Id of an incident to delete</param>
+    /// <returns></returns>
+    /// <response code="204">Deleted an incident, nothing to return</response>
+    /// <response code="404">If the incident with the given Id could not have been found</response>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete([FromRoute]string incidentId)
     {
-        throw new NotImplementedException();
+        await _incidentService.DeleteIncidentAsync(incidentId);
+
+        return NoContent();
     }
 }

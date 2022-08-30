@@ -9,6 +9,7 @@ namespace IncidentManagment.Logic.Interfaces;
 public interface IAccountService
 {
     Task<Account> AddAccountAsync(Account account);
+    Task<Account> DeleteIncidentAsync(string accountId);
     Task<Account> GetAccountByIdAsync(string id);
     Task<IEnumerable<Account>> GetAccountsAsync();
 }

@@ -11,4 +11,5 @@ public interface IIncidentService
     Task<IEnumerable<Incident>> GetIncidentsAsync();
     Task<Incident> GetIncidentById(string id);
     Task<Incident> CreateIncidentAsync(Incident incident, string accountId);
+    Task<Incident> DeleteIncidentAsync(string id);
 }

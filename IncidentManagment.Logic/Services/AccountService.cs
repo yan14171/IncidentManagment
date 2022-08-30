@@ -13,8 +13,8 @@ public class AccountService : IAccountService
     
     public async Task<Account> AddAccountAsync(Account account)
     {
-        if (await _incidentContext.Contacts.FindAsync(account.ContactId) == null)
-            throw new ValueNotFoundException("Couldn't add an account, contact with given id could not have been found", "account.ContactId");
+        if (await _incidentContext.Contacts.FindAsync(account.ContactId) is null)
+            throw new ValueNotFoundException("Couldn't add an account, contact with given id could not have been found", nameof(account.ContactId));
 
         var addedAccount = _incidentContext.Accounts.Add(account);
         await _incidentContext.SaveChangesAsync();
@@ -26,7 +26,7 @@ public class AccountService : IAccountService
         var foundAccount = await _incidentContext.Accounts.FindAsync(id);
 
         if (foundAccount is null)
-            throw new NoContentException("Account with given id could not have been found", "id");
+            throw new NoContentException("Account with given id could not have been found", nameof(id));
 
         return foundAccount;
     }
@@ -34,5 +34,26 @@ public class AccountService : IAccountService
     public async Task<IEnumerable<Account>> GetAccountsAsync()
     {
         return await _incidentContext.Accounts.ToListAsync();
+    }
+
+    public async Task<Account> DeleteIncidentAsync(string id)
+    {
+        var foundAccount = await _incidentContext.Accounts.FindAsync(id);
+
+        if (foundAccount is null)
+            throw new NoContentException("Account with given id could not have been found", nameof(id));
+
+        try
+        {
+            _incidentContext.Accounts.Remove(foundAccount);
+
+            await _incidentContext.SaveChangesAsync();
+        }
+        catch(DbUpdateException ex)
+        {
+            throw new UnprocessableException(ex.Message);
+        }
+
+        return foundAccount;
     }
 }

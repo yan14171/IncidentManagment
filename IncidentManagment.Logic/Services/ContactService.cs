@@ -24,7 +24,7 @@ public class ContactService : IContactService
         var foundContact = await _incidentContext.Contacts.FindAsync(id);
 
         if (foundContact is null)
-            throw new NoContentException("Contact with given id could not have been found", "id");
+            throw new NoContentException("Contact with given id could not have been found", nameof(id));
 
         return foundContact;
     }
@@ -38,7 +38,7 @@ public class ContactService : IContactService
     {
         var foundAccount = await _incidentContext.Accounts.FindAsync(accountId);
         if (foundAccount is null)
-            throw new ValueNotFoundException("Account with given account id could not have been found", "accountId");
+            throw new ValueNotFoundException("Account with given account id could not have been found", nameof(accountId));
 
         var foundContact = await _incidentContext.Contacts.FindAsync(contact.Email);
 
@@ -55,6 +55,27 @@ public class ContactService : IContactService
             _incidentContext.Entry(foundContact).State = EntityState.Added;
         }
         await _incidentContext.SaveChangesAsync();
+
+        return foundContact;
+    }
+
+    public async Task<Contact> DeleteIncidentAsync(string id)
+    {
+        var foundContact = await _incidentContext.Contacts.FindAsync(id);
+
+        if (foundContact is null)
+            throw new NoContentException("Contact with given id could not have been found", nameof(id));
+
+        try
+        {
+            _incidentContext.Contacts.Remove(foundContact);
+
+            await _incidentContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new UnprocessableException(ex.Message);
+        }
 
         return foundContact;
     }

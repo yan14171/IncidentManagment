@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Serilog;
+using IncidentManagment.Logic.Services;
 
 namespace IncidentManagment.Controllers;
 
@@ -91,5 +92,24 @@ public class AccountsController : Controller
         var addedAccountDTO = _mapper.Map<AccountDTO>(addedAccount);
         diagnosticContext.Set("accountId", addedAccount.Name);
         return Created(HttpContext.Request.GetDisplayUrl(), addedAccountDTO);
+    }
+
+    /// <summary>
+    /// Deletes an account with a given Id
+    /// </summary>
+    /// <param name="id">Id of an account to delete</param>
+    /// <returns></returns>
+    /// <response code="204">Deleted an account, nothing to return</response>
+    /// <response code="404">If the account with the given Id could not have been found</response>
+    /// <response code="422">If the account with the given Id still contains unresolved incidents</response>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> Delete([FromRoute] string id)
+    {
+        await _accountService.DeleteIncidentAsync(id);
+
+        return NoContent();
     }
 }

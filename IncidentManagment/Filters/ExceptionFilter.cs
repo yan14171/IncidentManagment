@@ -26,9 +26,14 @@ public class ExceptionFilter : Attribute, IExceptionFilter
             context.Result = new NoContentResult();
             return;
         }
+        catch (UnprocessableException)
+        {
+            resultBody.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            exceptionMessages.Add("The server was unable to process the contained instructions");
+        }
         catch (Exception)
         {
-            resultBody.StatusCode = StatusCodes.Status403Forbidden;
+            resultBody.StatusCode = StatusCodes.Status500InternalServerError;
             exceptionMessages.Add("Unknown error");
         }
 
@@ -42,7 +47,7 @@ static class ExceptionExtensions
 {
     public static List<string> GetExceptionMessages(this Exception e)
     {
-        if (e == null) return new List<string> { string.Empty };
+        if (e is null) return new List<string> { string.Empty };
 
         List<string> msgs = new List<string> { e.Message };
         if (e.InnerException != null)
