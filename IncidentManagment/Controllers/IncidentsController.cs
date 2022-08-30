@@ -62,7 +62,11 @@ public class IncidentsController : Controller
     public async Task<IActionResult> GetById([FromRoute]string id)
     {
         var incident = await _incidentService.GetIncidentById(id);
+
+        _logger.LogInformation("Queried incident with an id {id}", id);
+
         var incidentDTO = _mapper.Map<IncidentDTO>(incident);
+
         return Ok(incidentDTO);
     }
     
@@ -100,7 +104,11 @@ public class IncidentsController : Controller
 
         contact = await _contactService.LinkContactToAccountAsync(contact, incidentCreation.AccountId);
 
+        _logger.LogInformation("Linked contact with id {contactId} to account with id {accountId}", contact.Email, incidentCreation.AccountId);
+
         incident = await _incidentService.CreateIncidentAsync(incident, incidentCreation.AccountId);
+
+        _logger.LogInformation("Created an incident with id {id}", incident.Name);
 
         return Ok(_mapper.Map<IncidentDTO>(incident));
     }
@@ -115,9 +123,13 @@ public class IncidentsController : Controller
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete([FromRoute]string incidentId)
+    public async Task<IActionResult> Delete([FromRoute]string incidentId, [FromServices] IDiagnosticContext diagContext)
     {
+        diagContext.Set("incidentId", incidentId);
+
         await _incidentService.DeleteIncidentAsync(incidentId);
+
+        _logger.LogInformation("Deleted an incident with id {incidentId}", incidentId);
 
         return NoContent();
     }
